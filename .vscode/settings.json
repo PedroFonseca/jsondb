@@ -1,0 +1,9 @@
+{
+    // Set the default
+    "editor.formatOnSave": true,
+    // Enable per-language
+    "[typescript]": {
+        "editor.formatOnSave": true
+    },
+    "eslint.run": "onSave"
+}
