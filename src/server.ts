@@ -1,7 +1,6 @@
 import express from 'express';
 import { config } from 'dotenv';
-import { JsonDB } from 'node-json-db';
-import getDB from './getDB';
+import { readDB, updateDB, patchDB, reloadDB, listDBs } from './execDbOperation';
 
 config();
 const port = process.env.PORT || 3000;
@@ -10,76 +9,32 @@ app.use(express.json());
 
 app.get('/', (request, response) =>
   response.json({
-    message:
-      'DB server up and running! Use format /dbname to access a database',
+    message: 'DB server up and running!',
   }),
 );
 
-type ObjectType = { [key: string]: unknown };
-
-const logMessage = (message: string): void => {
-  if (process.env.DEBUG === 'TRUE') console.log(`${message}`);
-};
-
-const executeOperation = (
-  dbname: string,
-  operation: (db: JsonDB) => ObjectType | void,
-): ObjectType => {
-  try {
-    const db = getDB(dbname);
-    const result = operation(db);
-
-    logMessage(`Success ${operation}`);
-    return {
-      success: true,
-      data: result,
-    };
-  } catch (error) {
-    logMessage(`Error ${operation}: ${error.message}`);
-    return {
-      success: false,
-      operation,
-      error: error.message,
-    };
-  }
-};
+app.get('/operations/list', (request, response) => {
+  response.json(listDBs());
+});
 
 app.get('/:dbname', (request, response) => {
-  const path = request.query.path as string;
-  const operation = (db: JsonDB) => db.getData(path);
-  const result = executeOperation(request.params.dbname, operation);
-
-  response.json(result);
+  response.json(readDB(request.params.dbname, request.query.path as string));
 });
 
 app.post('/:dbname', (request, response) => {
-  const path = request.query.path as string;
-  const operation = (db: JsonDB) => db.push(path, request.body, true);
-  const result = executeOperation(request.params.dbname, operation);
-
-  response.json(result);
+  response.json(updateDB(request.params.dbname, request.query.path as string, request.body));
 });
 
 app.put('/:dbname', (request, response) => {
-  const path = request.query.path as string;
-  const operation = (db: JsonDB) => db.push(path, request.body, true);
-  const result = executeOperation(request.params.dbname, operation);
-
-  response.json(result);
+  response.json(updateDB(request.params.dbname, request.query.path as string, request.body));
 });
 
 app.patch('/:dbname', (request, response) => {
-  const path = request.query.path as string;
-  const operation = (db: JsonDB) => db.push(path, request.body, false);
-  const result = executeOperation(request.params.dbname, operation);
-
-  response.json(result);
+  response.json(patchDB(request.params.dbname, request.query.path as string, request.body));
 });
 
 app.get('/:dbname/reload', (request, response) => {
-  const db = getDB(request.params.dbname);
-  db.reload();
-  response.json({ success: true });
+  response.json(reloadDB(request.params.dbname));
 });
 
 app.listen(port, () => {

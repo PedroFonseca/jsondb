@@ -9,8 +9,7 @@ const loadedDBs = {} as { [key: string]: JsonDB };
 // If you put false, you'll have to call the save() method.
 // The third argument is to ask JsonDB to save the database in an human readable format. (default false)
 // The last argument is the separator. By default it's slash (/)
-const initDB = (name: string): JsonDB =>
-  new JsonDB(new Config(name, true, false, '/'));
+const initDB = (name: string): JsonDB => new JsonDB(new Config(`dbs\\${name}`, true, false, '/'));
 
 // Fetches a loaded database or initializes it if it's not loaded yet
 export default (name: string): JsonDB => {
