@@ -1,11 +1,17 @@
 import express from 'express';
+import compression from 'compression';
+import bodyParser from 'body-parser';
 import { config } from 'dotenv';
 import { readDB, updateDB, patchDB, reloadDB, listDBs } from './execDbOperation';
 
 config();
 const port = process.env.PORT || 3000;
 const app = express();
-app.use(express.json());
+// Compress HTTP responses
+app.use(compression());
+// Uncompress gzip requests
+app.use(bodyParser.json({ type: 'application/gzip', limit: '50mb' }));
+app.use(bodyParser.json({ type: 'application/json' }));
 
 app.get('/', (request, response) =>
   response.json({
